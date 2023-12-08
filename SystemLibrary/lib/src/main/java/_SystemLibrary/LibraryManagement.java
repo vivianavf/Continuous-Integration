@@ -22,7 +22,7 @@ public class LibraryManagement {
         }
     }
 
-	private static List<Book> selectBooks() {
+	static List<Book> selectBooks() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Select books for checkout:");
         List<Book> catalog = BookCatalog.getCatalog();
@@ -58,7 +58,7 @@ public class LibraryManagement {
         return selectedBooks;
     }
 	
-	private static int validateQuantity(Scanner scanner) {
+	static int validateQuantity(Scanner scanner) {
         System.out.println("Enter the quantity for the book:");
         try {
             int quantity = Integer.parseInt(scanner.nextLine().trim());
@@ -76,7 +76,7 @@ public class LibraryManagement {
         return selectedBook.getQuantity() >= quantity;
     }
 	
-	private static void calculateDueDates(List<Book> selectedBooks) {
+	static void calculateDueDates(List<Book> selectedBooks) {
         LocalDate currentDate = LocalDate.now();
 
         System.out.println("\nDue Dates for Checked-out Books:");
