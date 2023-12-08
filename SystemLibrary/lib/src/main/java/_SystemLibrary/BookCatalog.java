@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BookCatalog {
-    private static List<Book> catalog = new ArrayList<>();
+	
+	
+	private static List<Book> catalog = new ArrayList<>();
 
     static {
         // Initialize the catalog with sample books
@@ -15,5 +17,6 @@ public class BookCatalog {
 
     public static List<Book> getCatalog() {
         return catalog;
-    }
+    } 
+    
 }

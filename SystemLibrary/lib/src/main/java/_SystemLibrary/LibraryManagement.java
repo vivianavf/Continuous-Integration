@@ -5,115 +5,112 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class LibraryManagement {
-    private static final int MAX_BOOKS_PER_CHECKOUT = 10;
-
-    public static void main(String[] args) {
+	
+	public static void main(String[] args) {
         displayCatalog();
-
-        // Requirement 1: Book Selection and Checkout
-        List<Book> selections = selectBooks();
-        displayCheckoutConfirmation(selections);
-
-        // Requirement 2: Quantity Validation
-        int newQuantity = validateQuantity();
-        if (newQuantity == -1) {
-            System.out.println("Invalid quantity. Please enter a positive integer greater than zero.");
-            return;
-        }
-
-        // Requirement 3: Due Date Calculation
-        System.out.println("Due Date for new checkout: " + calculateDueDate());
-
-        // Requirement 4: Late Fee Calculation
-        double lateFees = calculateLateFees(BookCatalog.getCatalog());
-        System.out.println("Total Late Fees for the entire catalog: $" + lateFees);
-
-        // Requirement 5: Book Availability
-        List<Book> unavailableBooks = new ArrayList<>();
-        unavailableBooks.add(new Book("Book1", "Author1", BookCatalog.getCatalog().get(0).getQuantity() + 1));
-        if (checkoutBooks(unavailableBooks) == -1) {
-            System.out.println("Error: Unavailable book selected. Please re-select.");
-        }
-
-        // Requirement 6: Maximum Books per Checkout
-        List<Book> selectionsExceedLimit = selectBooksExceedLimit();
-        if (checkoutBooks(selectionsExceedLimit) == -1) {
-            System.out.println("Error: Exceeded maximum books per checkout. Please adjust your selection.");
-        }
-
-        // Requirement 7: User Confirmation
-        displayCheckoutConfirmation(selectionsExceedLimit);
-
-        // Requirement 8: Return Process
-        List<Book> returnedBooks = returnBooks();
-        double returnLateFees = calculateLateFees(returnedBooks);
-        System.out.println("Total Late Fees for returned books: $" + returnLateFees);
-
-        // Requirement 9: Output
-        displayCheckoutConfirmation(selectionsExceedLimit);
-        System.out.println("Total Late Fees: $" + calculateLateFees(BookCatalog.getCatalog()));
-
-        // Requirement 10: Error Handling
-        int invalidInput = validateQuantity("invalid");
-        if (invalidInput == -1) {
-            System.out.println("Error: Invalid input detected.");
-        }
-
-        List<Book> canceledCheckout = checkoutBooks(new ArrayList<>());
-        if (canceledCheckout == null) {
-            System.out.println("Error: Checkout canceled.");
-        }
+        List<Book> selectedBooks = selectBooks();
+        calculateDueDates(selectedBooks);
+        calculateLateFees(selectedBooks);
     }
-
-    private static void displayCatalog() {
+	
+	private static void displayCatalog() {
         System.out.println("Library Catalog:");
         for (Book book : BookCatalog.getCatalog()) {
             System.out.println(book.getTitle() + " by " + book.getAuthor() + " - Available: " + book.getQuantity());
         }
     }
 
-    private static List<Book> selectBooks() {
-        // Implement user input logic for book selection
-        return null;
+	private static List<Book> selectBooks() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Select books for checkout:");
+        List<Book> catalog = BookCatalog.getCatalog();
+
+        for (int i = 0; i < catalog.size(); i++) {
+            Book book = catalog.get(i);
+            System.out.println((i + 1) + ". " + book.getTitle() + " by " + book.getAuthor());
+        }
+
+        System.out.println("Enter the book numbers you want to checkout (comma-separated):");
+        String input = scanner.nextLine();
+        String[] bookNumbers = input.split(",");
+        
+        List<Book> selectedBooks = new ArrayList<>();
+        
+     // Add logic to convert book numbers to actual Book objects
+        for (String bookNumber : bookNumbers) {
+            int index = Integer.parseInt(bookNumber.trim()) - 1;
+
+            // Validate quantity before adding to the selected books
+            int quantity = validateQuantity(scanner);
+            if (quantity != -1) {
+                Book selectedBook = catalog.get(index);
+                selectedBook.setQuantity(quantity);
+                selectedBooks.add(selectedBook);
+            } else {
+                System.out.println("Invalid quantity. Please re-enter the quantity.");
+                // Optionally, you can choose to re-prompt for the same book or exit the selection process
+                break;
+            }
+        }
+
+        return selectedBooks;
+    }
+	
+	private static int validateQuantity(Scanner scanner) {
+        System.out.println("Enter the quantity for the book:");
+        try {
+            int quantity = Integer.parseInt(scanner.nextLine().trim());
+            if (quantity > 0) {
+                return quantity;
+            } else {
+                return -1; // Invalid quantity
+            }
+        } catch (NumberFormatException e) {
+            return -1; // Invalid input, not a valid integer
+        }
+    }
+	
+	private static boolean isBookAvailable(Book selectedBook, int quantity) {
+        return selectedBook.getQuantity() >= quantity;
+    }
+	
+	private static void calculateDueDates(List<Book> selectedBooks) {
+        LocalDate currentDate = LocalDate.now();
+
+        System.out.println("\nDue Dates for Checked-out Books:");
+
+        for (Book book : selectedBooks) {
+            LocalDate dueDate = currentDate.plusDays(14); // Assigning a standard loan period of 14 days
+            System.out.println(book.getTitle() + " - Due Date: " + dueDate);
+            // Optionally, you can set the dueDate in the Book object for further processing
+        }
+    }
+	
+	private static void calculateLateFees(List<Book> selectedBooks) {
+        double totalLateFees = 0;
+
+        LocalDate currentDate = LocalDate.now();
+
+        System.out.println("\nLate Fees for Checked-out Books:");
+
+        for (Book book : selectedBooks) {
+            LocalDate dueDate = currentDate.plusDays(14); // Assigning a standard loan period of 14 days
+
+            // Calculate late fees if the book is overdue
+            if (currentDate.isAfter(dueDate)) {
+                long daysOverdue = currentDate.toEpochDay() - dueDate.toEpochDay();
+                double lateFee = daysOverdue * 1.0; // Apply a late fee of $1 per day
+                totalLateFees += lateFee;
+
+                System.out.println(book.getTitle() + " - Late Fee: $" + lateFee);
+            }
+        }
+
+        System.out.println("Total Late Fees for the user's account: $" + totalLateFees);
     }
 
-    private static int validateQuantity() {
-        // Implement user input logic for quantity validation
-        return 0;
-    }
-
-    private static int validateQuantity(String input) {
-        // Implement user input logic for quantity validation with a specified input
-        return 0;
-    }
-
-    private static LocalDate calculateDueDate() {
-        // Implement due date calculation logic
-        return LocalDate.now().plusDays(14);
-    }
-
-    private static double calculateLateFees(List<Book> books) {
-        // Implement late fee calculation logic
-        return 0.0;
-    }
-
-    private static List<Book> checkoutBooks(List<Book> selections) {
-        // Implement book checkout logic
-        return null;
-    }
-
-    private static List<Book> selectBooksExceedLimit() {
-        // Implement user input logic for selecting books that exceed the limit
-        return null;
-    }
-
-    private static void displayCheckoutConfirmation(List<Book> selections) {
-        // Implement logic to display checkout confirmation
-    }
-
-    private static List<Book> returnBooks() {
-        // Implement book return logic
-        return null;
-    }
+	
+	
 }
